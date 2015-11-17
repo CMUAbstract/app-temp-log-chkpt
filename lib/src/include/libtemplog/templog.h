@@ -1,7 +1,7 @@
 #ifndef TEMPLOG_H
 #define TEMPLOG_H
 
-#define DICT_SIZE        128 // TODO: support small table by re-initing when full
+#define DICT_SIZE        512 // TODO: support small table by re-initing when full
 #define BLOCK_SIZE        64
 
 #define NUM_LETTERS_IN_SAMPLE        2
