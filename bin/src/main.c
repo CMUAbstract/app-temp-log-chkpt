@@ -120,6 +120,7 @@ void init_dict(dict_t *dict)
         node->child = 0;
 
         dict->node_count++;
+        LOG("init dict: node count %u\r\n", dict->node_count);
     }
 }
 
