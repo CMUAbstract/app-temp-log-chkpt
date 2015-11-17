@@ -31,12 +31,24 @@
 /* This is for progress reporting only */
 #define SET_CURTASK(t) curtask = t
 
-#define TASK_MAIN                   1
+#define TASK_MAIN                   0
+#define TASK_INIT_DICT              1
+#define TASK_COMPRESS               2
+#define TASK_SAMPLE                 3
+#define TASK_FIND_CHILD             4
+#define TASK_FIND_SIBLING           5
+#define TASK_ADD_NODE               6
+#define TASK_ADD_NODE_INIT          7
+#define TASK_ADD_NODE_FIND_LAST     8
+#define TASK_ADD_NODE_LINK_SIBLING  9
+#define TASK_ADD_NODE_LINK_CHILD   10
+#define TASK_APPEND_COMPRESSED     11
+#define TASK_PRINT                 12
 
 #ifdef DINO
 
-#define TASK_BOUNDARY(t, x) \
-        DINO_TASK_BOUNDARY_MANUAL(x); \
+#define TASK_BOUNDARY(t) \
+        DINO_TASK_BOUNDARY_MANUAL(NULL); \
         SET_CURTASK(t); \
 
 #define DINO_RESTORE_NONE() \
@@ -55,7 +67,7 @@
 
 #else // !DINO
 
-#define TASK_BOUNDARY(t, x) SET_CURTASK(t)
+#define TASK_BOUNDARY(t) SET_CURTASK(t)
 
 #define DINO_RESTORE_CHECK()
 #define DINO_VERSION_PTR(...)
@@ -75,6 +87,9 @@ static __nv unsigned curtask;
 
 static sample_t acquire_sample(letter_t prev_sample)
 {
+    TASK_BOUNDARY(TASK_SAMPLE);
+    DINO_RESTORE_NONE();
+
 #ifdef TEST_SAMPLE_DATA
     //letter_t sample = rand() & 0x0F;
     letter_t sample = (prev_sample + 1) & 0x03;
@@ -114,6 +129,12 @@ void init_dict(dict_t *dict)
     LOG("init dict\r\n");
 
     for (l = 0; l < NUM_LETTERS; ++l) {
+        DINO_VERSION_VAL(unsigned, dict->node_count, dict_node_count);
+        TASK_BOUNDARY(TASK_INIT_DICT);
+        DINO_RESTORE_VAL(dict->node_count, dict_node_count);
+
+        curtask = l; // HACK for progress display
+
         node_t *node = &dict->nodes[l];
         node->letter = l;
         node->sibling = 0;
@@ -126,6 +147,9 @@ void init_dict(dict_t *dict)
 
 index_t find_child(letter_t letter, index_t parent, dict_t *dict)
 {
+    TASK_BOUNDARY(TASK_FIND_CHILD);
+    DINO_RESTORE_NONE();
+
     node_t *parent_node = &dict->nodes[parent];
 
     LOG("find child: l %u p %u c %u\r\n", letter, parent, parent_node->child);
@@ -137,6 +161,9 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
 
     index_t sibling = parent_node->child;
     while (sibling != NIL) {
+
+        TASK_BOUNDARY(TASK_FIND_SIBLING);
+        DINO_RESTORE_NONE();
 
         node_t *sibling_node = &dict->nodes[sibling];
 
@@ -157,10 +184,17 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
 
 void add_node(letter_t letter, index_t parent, dict_t *dict)
 {
+    TASK_BOUNDARY(TASK_ADD_NODE);
+    DINO_RESTORE_NONE();
+
     if (dict->node_count == DICT_SIZE) {
         PRINTF("add node: table full\r\n");
         while(1); // bail for now
     }
+
+    DINO_VERSION_VAL(unsigned, dict->node_count, dict_node_count);
+    TASK_BOUNDARY(TASK_ADD_NODE_INIT);
+    DINO_RESTORE_VAL(dict->node_count, dict_node_count);
 
     // Initialize the new node
     node_t *node = &dict->nodes[dict->node_count];
@@ -183,16 +217,26 @@ void add_node(letter_t letter, index_t parent, dict_t *dict)
         index_t sibling = child;
         node_t *sibling_node = &dict->nodes[sibling];
         while (sibling_node->sibling != NIL) {
+
+            TASK_BOUNDARY(TASK_ADD_NODE_FIND_LAST);
+            DINO_RESTORE_NONE();
+
             LOG("add node: sibling %u, l %u s %u\r\n",
                 sibling, letter, sibling_node->sibling);
             sibling = sibling_node->sibling;
             sibling_node = &dict->nodes[sibling];
         }
 
+        TASK_BOUNDARY(TASK_ADD_NODE_LINK_SIBLING);
+        DINO_RESTORE_NONE();
+
         // Link-in the new node
         LOG("add node: last sibling %u\r\n", sibling);
         dict->nodes[sibling].sibling = node_index;
     } else {
+        TASK_BOUNDARY(TASK_ADD_NODE_LINK_CHILD);
+        DINO_RESTORE_NONE();
+
         LOG("add node: is only child\r\n");
         dict->nodes[parent].child = node_index;
     }
@@ -200,6 +244,10 @@ void add_node(letter_t letter, index_t parent, dict_t *dict)
 
 void append_compressed(index_t parent, log_t *log)
 {
+    DINO_VERSION_VAL(unsigned, log->count, log_count);
+    TASK_BOUNDARY(TASK_APPEND_COMPRESSED);
+    DINO_RESTORE_VAL(log->count, log_count);
+
     LOG("append comp: p %u cnt %u\r\n", parent, log->count);
     log->data[log->count++] = parent;
 }
@@ -251,6 +299,9 @@ int main()
 
     DINO_RESTORE_CHECK();
 
+    TASK_BOUNDARY(TASK_MAIN);
+    DINO_RESTORE_NONE();
+
     init_dict(&dict);
 
     // Initialize the pointer into the dictionary to one of the root nodes
@@ -266,13 +317,17 @@ int main()
     log.count = 0; // init compressed counter
 
     while (1) {
-        TASK_BOUNDARY(TASK_MAIN, NULL);
+        TASK_BOUNDARY(TASK_COMPRESS);
         DINO_RESTORE_NONE();
 
         child = (index_t)letter; // relyes on initialization of dict
         LOG("compress: parent %u\r\n", child); // naming is odd due to loop
 
         do {
+
+            DINO_VERSION_VAL(unsigned, log.sample_count, log_sample_count);
+            TASK_BOUNDARY(TASK_MAIN);
+            DINO_RESTORE_VAL(log.sample_count, log_sample_count);
 
             if (letter_idx == 0) {
                 sample = acquire_sample(prev_sample);
@@ -295,6 +350,10 @@ int main()
         add_node(letter, parent, &dict);
 
         if (log.count == BLOCK_SIZE) {
+
+            TASK_BOUNDARY(TASK_PRINT);
+            DINO_RESTORE_NONE();
+
             print_log(&log);
             log.count = 0;
             log.sample_count = 0;
