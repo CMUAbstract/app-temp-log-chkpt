@@ -234,7 +234,8 @@ int main()
 
     index_t parent, child;
 
-    log.sample_count++;
+    log.sample_count = 1; // count the initial sample (see above)
+    log.count = 0; // init compressed counter
 
     while (1) {
         TASK_BOUNDARY(TASK_MAIN, NULL);
