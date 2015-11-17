@@ -110,9 +110,9 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
     }
 
     index_t sibling = parent_node->child;
-    node_t *sibling_node = &dict->nodes[sibling];
+    while (sibling != NIL) {
 
-    while (sibling_node->sibling != NIL) {
+        node_t *sibling_node = &dict->nodes[sibling];
 
         LOG("find child: l %u, s %u l %u s %u\r\n", letter,
             sibling, sibling_node->letter, sibling_node->sibling);
@@ -121,7 +121,7 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
             LOG("find child: found %u\r\n", sibling);
             return sibling;
         } else {
-            sibling_node = &dict->nodes[sibling_node->sibling];
+            sibling = sibling_node->sibling;
         }
     }
 
