@@ -1,8 +1,17 @@
 #ifndef TEMPLOG_H
 #define TEMPLOG_H
 
-#define DICT_SIZE        280 // TODO: support small table by re-initing when full
+#define DICT_SIZE         512
+#define BLOCK_SIZE         64
+
+// Mementos with all volatile vars, works only with these, because
+// the above values blow the stack (all RAM, in fact). The values
+// below are just about the largest that could be found by trial
+// and error.
+#if 0
+#define DICT_SIZE        280
 #define BLOCK_SIZE        16
+#endif
 
 #define NUM_LETTERS_IN_SAMPLE        2
 #define LETTER_MASK             0x00FF
