@@ -174,7 +174,7 @@ void add_node(letter_t letter, index_t parent, dict_t *dict)
 
 void append_compressed(index_t parent, log_t *log)
 {
-    LOG("append comp: p %u\r\n", parent);
+    LOG("append comp: p %u cnt %u\r\n", parent, log->count);
     log->data[log->count++] = parent;
 }
 
