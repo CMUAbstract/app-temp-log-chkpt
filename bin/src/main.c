@@ -253,6 +253,9 @@ int main()
             print_log(&log);
             log.count = 0;
             log.sample_count = 0;
+
+            // For now do only one block
+            while(1);
         }
 
 #ifdef CONT_POWER
