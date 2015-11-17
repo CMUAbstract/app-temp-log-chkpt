@@ -86,6 +86,8 @@ void init_dict(dict_t *dict)
 {
     letter_t l;
 
+    LOG("init dict\r\n");
+
     for (l = 0; l < NUM_LETTERS; ++l) {
         node_t *node = &dict->nodes[l];
         node->letter = l;
@@ -102,8 +104,10 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
 
     LOG("find child: l %u p %u c %u\r\n", letter, parent, parent_node->child);
 
-    if (parent_node->child == NIL)
+    if (parent_node->child == NIL) {
+        LOG("find child: not found (no children)\r\n");
         return NIL;
+    }
 
     index_t sibling = parent_node->child;
     node_t *sibling_node = &dict->nodes[sibling];
@@ -121,7 +125,7 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
         }
     }
 
-    LOG("find child: not found\r\n");
+    LOG("find child: not found (no match)\r\n");
     return NIL; 
 }
 
@@ -139,7 +143,7 @@ void add_node(letter_t letter, index_t parent, dict_t *dict)
     index_t child = dict->nodes[parent].child;
 
     LOG("add node: i %u l %u, p: %u pc %u\r\n",
-        letter, node_index, parent, child);
+        node_index, letter, parent, child);
 
     if (child) {
         LOG("add node: is sibling\r\n");
