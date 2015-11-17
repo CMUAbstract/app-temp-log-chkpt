@@ -131,6 +131,11 @@ index_t find_child(letter_t letter, index_t parent, dict_t *dict)
 
 void add_node(letter_t letter, index_t parent, dict_t *dict)
 {
+    if (dict->node_count == DICT_SIZE) {
+        PRINTF("add node: table full\r\n");
+        while(1); // bail for now
+    }
+
     // Initialize the new node
     node_t *node = &dict->nodes[dict->node_count];
 
