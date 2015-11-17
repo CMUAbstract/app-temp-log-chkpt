@@ -7,13 +7,15 @@ void print_log(log_t *log)
 {
     unsigned i;
     BLOCK_PRINTF_BEGIN();
-    BLOCK_PRINTF("compressed block: ");
-    for (i = 0; i < BLOCK_SIZE; ++i) {
-        BLOCK_PRINTF("%04u ", log->data[i]);
-        if (i > 0 && (i + 1) % 8 == 0)
+    BLOCK_PRINTF("rate: samples/block: %u/%u\r\n",
+                 log->sample_count, log->count);
+    BLOCK_PRINTF("compressed block:\r\n");
+    for (i = 0; i < log->count; ++i) {
+        BLOCK_PRINTF("%04x ", log->data[i]);
+        if (i > 0 && ((i + 1) & (8 - 1)) == 0)
             BLOCK_PRINTF("\r\n");
     }
-    BLOCK_PRINTF("rate: samples/block: %u/%u\r\n",
-                 log->sample_count, BLOCK_SIZE);
+    if ((log->count & (8 - 1)) != 0)
+        BLOCK_PRINTF("\r\n");
     BLOCK_PRINTF_END();
 }
