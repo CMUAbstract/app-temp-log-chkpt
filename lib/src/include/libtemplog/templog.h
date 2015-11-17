@@ -1,8 +1,8 @@
 #ifndef TEMPLOG_H
 #define TEMPLOG_H
 
-#define DICT_SIZE       128
-#define BLOCK_SIZE        8
+#define DICT_SIZE        128 // TODO: support small table by re-initing when full
+#define BLOCK_SIZE        64
 #define NUM_LETTERS     (0x0F + 1)
 
 typedef unsigned index_t;
