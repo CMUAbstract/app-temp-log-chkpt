@@ -265,7 +265,7 @@ int main()
         }
 
 #ifdef CONT_POWER
-        volatile uint32_t delay = 0x8ffff;
+        volatile uint32_t delay = 0x4ffff;
         while (delay--);
 #endif
     }
