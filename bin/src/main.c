@@ -73,7 +73,7 @@
 
 static __nv unsigned curtask;
 
-static letter_t acquire_sample(letter_t prev_sample)
+static sample_t acquire_sample(letter_t prev_sample)
 {
 #ifdef TEST_SAMPLE_DATA
     //letter_t sample = rand() & 0x0F;
@@ -253,12 +253,14 @@ int main()
 
     init_dict(&dict);
 
-    // Get the first sample (letter) to start at a root node of the dict
-    letter_t prev_sample = 0;
-    letter_t sample = acquire_sample(prev_sample);
-    prev_sample = sample;
+    // Initialize the pointer into the dictionary to one of the root nodes
+    // Assume all streams start with a fixed prefix ('0'), to avoid having
+    // to letterize this out-of-band sample.
+    letter_t letter = 0;
 
+    unsigned letter_idx = 0;
     index_t parent, child;
+    sample_t sample, prev_sample = 0;
 
     log.sample_count = 1; // count the initial sample (see above)
     log.count = 0; // init compressed counter
@@ -267,19 +269,30 @@ int main()
         TASK_BOUNDARY(TASK_MAIN, NULL);
         DINO_RESTORE_NONE();
 
-        child = (index_t)sample; // relyes on initialization of dict
+        child = (index_t)letter; // relyes on initialization of dict
         LOG("compress: parent %u\r\n", child); // naming is odd due to loop
 
         do {
-            sample = acquire_sample(prev_sample);
-            prev_sample = sample;
+
+            if (letter_idx == 0) {
+                sample = acquire_sample(prev_sample);
+                prev_sample = sample;
+            }
+            unsigned letter_shift = LETTER_SIZE_BITS * letter_idx;
+            letter = (sample & (LETTER_MASK << letter_shift)) >> letter_shift;
+            LOG("letterize: sample %x letter %x (%u)\r\n",
+                sample, letter, letter);
+            letter_idx++;
+            if (letter_idx == NUM_LETTERS_IN_SAMPLE)
+                letter_idx = 0;
+
             log.sample_count++;
             parent = child;
-            child = find_child(sample, parent, &dict);
+            child = find_child(letter, parent, &dict);
         } while (child != NIL);
 
         append_compressed(parent, &log);
-        add_node(sample, parent, &dict);
+        add_node(letter, parent, &dict);
 
         if (log.count == BLOCK_SIZE) {
             print_log(&log);

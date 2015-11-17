@@ -3,10 +3,15 @@
 
 #define DICT_SIZE        128 // TODO: support small table by re-initing when full
 #define BLOCK_SIZE        64
-#define NUM_LETTERS     (0x0F + 1)
+
+#define NUM_LETTERS_IN_SAMPLE        2
+#define LETTER_MASK             0x00FF
+#define LETTER_SIZE_BITS             8
+#define NUM_LETTERS (LETTER_MASK + 1)
 
 typedef unsigned index_t;
 typedef unsigned letter_t;
+typedef unsigned sample_t;
 
 // NOTE: can't use pointers, since need to ChSync, etc
 typedef struct _node_t {
