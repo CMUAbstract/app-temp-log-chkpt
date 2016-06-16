@@ -6,7 +6,7 @@
 // the above values blow the stack (all RAM, in fact). The values
 // below are just about the largest that could be found by trial
 // and error.
-#if 1 // Mementos volatile
+#if 0 // Mementos volatile
 #define DICT_SIZE        280
 #define BLOCK_SIZE        16
 #else
