@@ -27,6 +27,7 @@
 
 #include "pins.h"
 
+#define TEST_SAMPLE_DATA
 // #define SHOW_PROGRESS_ON_LED
 
 /* This is for progress reporting only */
