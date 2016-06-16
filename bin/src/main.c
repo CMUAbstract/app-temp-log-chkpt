@@ -89,8 +89,6 @@ static __nv unsigned curtask;
 
 static sample_t acquire_sample(letter_t prev_sample)
 {
-    TASK_BOUNDARY(TASK_SAMPLE);
-    DINO_RESTORE_NONE();
 
 #ifdef TEST_SAMPLE_DATA
     //letter_t sample = rand() & 0x0F;
@@ -332,6 +330,10 @@ int main()
             DINO_RESTORE_VAL(log.sample_count, log_sample_count);
 
             if (letter_idx == 0) {
+                DINO_VERSION_VAL(unsigned, log.sample_count, log_sample_count);
+                TASK_BOUNDARY(TASK_SAMPLE);
+                DINO_RESTORE_VAL(log.sample_count, log_sample_count);
+
                 sample = acquire_sample(prev_sample);
                 prev_sample = sample;
             }
